@@ -1,0 +1,23 @@
+TODO
+
+neutral units should move randomly during the neutral faction's turn
+    the neutral faction's turn should be executed programmatically, first switch into a Mode that doesn't allow user input handling, then execute shit (move his units, attack with his units, etc.), then exit that mode goign back into a normal Mode
+
+mode to see list of available scenarios, and pick one to play
+
+multiple different unit types
+    a water-travelling type (ship)
+    an aircraft
+    a water transport that can load/unload land units, and carry loaded ones when it moves across water
+
+some unit types can move across water, some can't
+
+mountains may not be moved into by most land units (but some can)
+    almost all air units can move into mountains
+
+how to find out screen or current window max xy?
+curses.getsyx?
+from the Window isntance?
+
+city can build a new unit for owner, of a given type
+    user has way to change what a city of his is building
