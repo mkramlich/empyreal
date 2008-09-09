@@ -1,7 +1,9 @@
 #!/usr/bin/env python2.5
 
-import curses, curses.wrapper, random
-import groglib
+import curses
+import curses.wrapper
+import random
+from groglib import chance, rand_diff, rand_range, rand_success
 
 gamename = 'Empyreal'
 
@@ -534,7 +536,7 @@ class UnitSelectedMode(Mode):
             if besttype == 'soft':
                 bestchance = softchance
             atktypedesc = '(%s %.4s)' % (besttype, bestchance)
-            if groglib.rand_success(bestchance):
+            if rand_success(bestchance):
                 df.hp -= 1
                 if df.hp <= 0:
                     msg('%s attacked %s and destroyed %s' % (desc_unit(at), atktypedesc, desc_unit(df)))
@@ -597,14 +599,14 @@ def splash_terrain(terr, x, y, dx, dy, nmin, limit, maxdepth=100, depth=0, sofar
     if sofar >= limit:
         return sofar, depth
     minbase = min(nmin-sofar, 1)
-    n = groglib.rand_range(minbase,5)
+    n = rand_range(minbase,5)
     for i in range(n):
-        if groglib.chance(3,4):
+        if chance(3,4):
             pass
         else:
             odx = dx
             ody = dy
-            dx,dy = groglib.rand_diff(2,2)
+            dx,dy = rand_diff(2,2)
             dx = dx + odx
             dy = dy + ody
         nx = x + dx
@@ -614,9 +616,9 @@ def splash_terrain(terr, x, y, dx, dy, nmin, limit, maxdepth=100, depth=0, sofar
     return sofar, depth
 
 def place_units_around(owner, type, x, y, dxm, dym, nmin, nmax):
-    n = groglib.rand_range(nmin, nmax-nmin)
+    n = rand_range(nmin, nmax-nmin)
     for i in range(n):
-        dx,dy = groglib.rand_diff(2,2)
+        dx,dy = rand_diff(2,2)
         xx,yy = force_valid_coords(x+dx, y+dy)
         u = Unit(owner,type,xx,yy)
         units.append(u)
