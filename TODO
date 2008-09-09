@@ -5,6 +5,8 @@ key to display help info on current mode, including list of supported commands; 
 mode to see list of available scenarios, and pick one to play
 
 user can save game
+    for initial save file format use pickle on the root of an object graph, since it's easy and compact
+    later prob revise to instead use a texty format like serialized Python src, so users can manually modify a save file's state in a text editor
 
 user can load game
 
@@ -22,7 +24,7 @@ built-in editor mode
     can save to a scenario file
     can load from a scenario file
 
-game has a client-server arrchitecture: one server process running on host machine, plus one client process per human player (there may be muultiple hotseat humans sitting at same computer sharing the same client process, taking turns; plus, zero or more remote human players or player groups, each with a single client process per computer, etc.)
+game has a client-server arrchitecture: one server process running on host machine, plus one client process per human player (there may be muultiple hotseat humans sitting at same computer sharing the same client process, taking turns; plus, zero or more remote human players or player groups, each with a single client process per computer, etc.) Start with simple text-over-a-socket. Consider using Twisted to provide more free abstractions.
 
 minefield - when units move into the cell, they may suffer HP damage
 
