@@ -1,9 +1,41 @@
 TODO
 
-neutral units should move randomly during the neutral faction's turn
-    the neutral faction's turn should be executed programmatically, first switch into a Mode that doesn't allow user input handling, then execute shit (move his units, attack with his units, etc.), then exit that mode goign back into a normal Mode
+key to display help info on current mode, including list of supported commands; the 'help' txt for a command should be attached to the command's function/method, as an attribute
 
 mode to see list of available scenarios, and pick one to play
+
+user can save game
+
+user can load game
+
+game supports 2-N factions
+    each faction can be controlled by either:
+        hotseat human
+        remote human (TCP, sockets, maybe use Twisted)
+        AI (which runs inside the server process, wherever that is)
+
+command to show a table of statistics about all factions, one line/chunk per faction
+
+built-in editor mode
+    lets user modify the map (terrain, cities, etc.)
+    lets user add/delete/modify units in any cell
+    can save to a scenario file
+    can load from a scenario file
+
+game has a client-server arrchitecture: one server process running on host machine, plus one client process per human player (there may be muultiple hotseat humans sitting at same computer sharing the same client process, taking turns; plus, zero or more remote human players or player groups, each with a single client process per computer, etc.)
+
+minefield - when units move into the cell, they may suffer HP damage
+
+fortified/fortress - defense bonus to units in that cell
+
+way for user to create minefields and fortifieds/fortresses in a cell -- using an Engineer unit?
+
+if city is surrounded (enemy units in all adj cells) then it's actual buildrate is reduced with regards to building new units; also, the buildrate it contributes to it's owning empire's unit support needs is cutoff to zero or merely reduced (if reduced, reduced more severely than is for local builds)
+
+if support need vs. city support provide shortfall is too severe, it should start penalizing units in the field (reduced movement, reduced combat ability, etc.)
+
+neutral units should move randomly during the neutral faction's turn
+    the neutral faction's turn should be executed programmatically, first switch into a Mode that doesn't allow user input handling, then execute shit (move his units, attack with his units, etc.), then exit that mode goign back into a normal Mode
 
 multiple different unit types
     a water-travelling type (ship)
@@ -19,5 +51,9 @@ how to find out screen or current window max xy?
 curses.getsyx?
 from the Window isntance?
 
-city can build a new unit for owner, of a given type
-    user has way to change what a city of his is building
+
+when city captured, partisans may be created nearby right then, and/or in subsequent turns, so long as the city remains foreign occupied/consquered (ie. owned by a faction which did not own it at scenario start)
+
+alt names:
+War, Strategy, Logic
+Empyreal

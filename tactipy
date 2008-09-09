@@ -3,10 +3,7 @@
 import curses, curses.wrapper, random
 import groglib
 
-
-#TODO if support need vs. city support provide shortfall is too severe, it should start penalizing units in the field (reduced movement, reduced combat ability, etc.)
-
-gamename = 'Empyre'
+gamename = 'Empyreal'
 
 COLOR_HIGHLIGHT = 9
 
@@ -189,6 +186,7 @@ def draw_messages():
         addstr(r,c,ln)
         r += 1
 
+
 class EconSnapshot:
     def __init__(self, facid):
         self.facid = facid
@@ -236,6 +234,7 @@ def draw_sidebar(highlighted_units=[]):
     cr = 10
     for city in cities:
         if city.x == px and city.y == py:
+            cityecon = EconSnapshot(city.owner)
             draw_city_at(city, cr, c)
             buildtxt = ''
             if city.building:
@@ -244,7 +243,7 @@ def draw_sidebar(highlighted_units=[]):
 
             actualtxt = ''
             if city.owner == curfac:
-                actual = econ.actual_buildrate(city)
+                actual = cityecon.actual_buildrate(city)
                 if actual < city.buildrate:
                     actualtxt = '; %s' % actual
             addstr(cr, c+2, "%s (%s%s)%s" % (city.name, city.buildrate, actualtxt, buildtxt))
@@ -276,6 +275,9 @@ def force_valid_coords(x, y):
     y = min(y, maph-1)
     x = min(x, mapw-1)
     return x,y
+
+def desc_unit(u):
+    return '%s %s' % (factions[u.owner].name, unittypes[u.type].name)
 
 def endturn():
     global curfac, turn
@@ -311,16 +313,35 @@ def endturn():
     for c in cities:
         if c.owner == curfac:
             c.buildprogress += econ.actual_buildrate(c)
-            utype = unittypes[c.buildtype]
+            utid = c.buildtype
+            utype = unittypes[utid]
             if c.buildprogress >= utype.buildcost:
                 c.buildprogress -= utype.buildcost
                 u = Unit(curfac, utid, c.x, c.y)
                 units.append(u)
                 msg('city %s built %s' % (c.name, desc_unit(u)))
 
+def is_enemy_unit_there(factionid, x, y):
+    for u in units:
+        if u.x == x and u.y == y and u.owner != factionid:
+            return True
+    return False
+
+def get_enemy_unit_there_to_attack(factionid, x, y):
+    for u in units:
+        if u.x == x and u.y == y and u.owner != factionid:
+            return u
+    return None
+
+def destroy_unit(unit):
+    units.remove(unit)
 
 class Mode:
     name = ''
+
+    def __init__(self):
+        self.disabled_keys = {}
+
     def handle_getch(self, ch):
         return True
 
@@ -339,7 +360,10 @@ class Mode:
 
 class BrowseMapMode(Mode):
     name = 'Browse Map'
+
     def handle_getch(self, ch):
+        if ch in self.disabled_keys:
+            return True
         if ch == 'q':
             return False
         if ch == 'i':
@@ -417,21 +441,6 @@ class SpecifyCityBuildTypeMode(Mode):
         mode = BrowseMapMode()
         return True
 
-def is_enemy_unit_there(factionid, x, y):
-    for u in units:
-        if u.x == x and u.y == y and u.owner != factionid:
-            return True
-    return False
-
-def get_enemy_unit_there_to_attack(factionid, x, y):
-    for u in units:
-        if u.x == x and u.y == y and u.owner != factionid:
-            return u
-    return None
-
-def destroy_unit(unit):
-    units.remove(unit)
-
 class UnitSelectedMode(Mode):
     name = 'Unit Selected'
     def __init__(self, unit):
@@ -454,6 +463,8 @@ class UnitSelectedMode(Mode):
             self.move_sel_unit(-1,0)
         if ch == 'k':
             self.move_sel_unit(1,0)
+        if ch == 'd':
+            self.disband_selected_unit()
         if ch == '.':
             self.cycle_sel_unit_in_same_cell()
         if ch == ' ':
@@ -469,6 +480,11 @@ class UnitSelectedMode(Mode):
         draw_sidebar([self.unit,])
         put_cursor_at_active_unit()
         scr.refresh()
+
+    def disband_selected_unit(self):
+        msg('disbanded %s' % desc_unit(self.unit))
+        destroy_unit(self.unit)
+        self.unselect_unit() 
 
     def unselect_unit(self):
         global mode
@@ -492,7 +508,6 @@ class UnitSelectedMode(Mode):
                     i = 0
                 else:
                     i += 1
-                
 
     def move_sel_unit(self, xrel, yrel):
         global py, px
@@ -545,16 +560,23 @@ class UnitSelectedMode(Mode):
             
         #self.refresh_display()
 
-class GameOverMode(Mode):
+class GameOverMode(BrowseMapMode):
     name = 'Game Over'
+
+    def __init__(self):
+        BrowseMapMode.__init__(self)
+        self.disabled_keys['b'] = True
+        self.disabled_keys['t'] = True
+
     def handle_getch(self, ch):
+        if not BrowseMapMode.handle_getch(self, ch):
+            return False
         if ch == 'r':
             restart_game()
-            #msg('scenario reset')
         return True
 
     def post_handle_getch(self):
-        pass
+        pass # so no victory_check() performed
 
 def is_valid_xy(x, y):
     return x >= 0 and y >= 0 and x < mapw and y < maph
@@ -627,14 +649,17 @@ def reset_world():
     factions = {
         0:Faction('Neutral',1),
         1:Faction('Blue',2),
-        2:Faction('Red',3)}
+        2:Faction('Red',3),
+        3:Faction('Green',4)}
 
-    bluecap = City('BlueCap', 1, 10,  5,  5)
-    redcap  = City('RedCap',  2, 10, 15, 10)
+    bluecap  = City('BlueCap',   1, 10,  5,  5)
+    redcap   = City('RedCap',    2, 10, 15, 10)
+    greencap = City('GreenCap',  3, 10, 25, 15)
 
     cities = [
         bluecap,
         redcap,
+        greencap,
         City('Paris',  0, 10,  7, 20),
         City('Denver', 0, 10, 12,  5)]
 
@@ -652,7 +677,9 @@ def reset_world():
 
         Unit(2,0,redcap.x+1,redcap.y-1),
         Unit(2,0,redcap.x-1,redcap.y+2),
-        Unit(2,0,redcap.x,redcap.y+1)]
+        Unit(2,0,redcap.x,redcap.y+1),
+
+        Unit(3,2,greencap.x,greencap.y-1)]
 
     c = city_with_name('Paris')
     place_units_around(c.owner, type_for_name('partisans'), c.x, c.y, 3, 3, 3, 5)
@@ -670,9 +697,6 @@ def restart_game():
     global mode
     reset_world()
     mode = BrowseMapMode()
-
-def desc_unit(u):
-    return '%s %s' % (factions[u.owner].name, unittypes[u.type].name)
 
 def victory_check():
     global mode
