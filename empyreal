@@ -9,6 +9,8 @@ gamename = 'Empyreal'
 
 COLOR_HIGHLIGHT = 9
 
+terrain_paintbrush = 0
+
 scr = None
 py = 0
 px = 0
@@ -33,6 +35,13 @@ type2terr = {}
 type2terr[0] = Terrain('plain',    '.',6)
 type2terr[1] = Terrain('mountains','^',8,True)
 type2terr[2] = Terrain('water',    '~',7)
+
+def terrname2id(name):
+    for terrid in type2terr:
+        terrain = type2terr[terrid]
+        if terrain.name == name:
+            return terrid
+    return None
 
 class Cell:
     def __init__(self, terr=0):
@@ -349,7 +358,7 @@ class Mode:
         self.disabled_keys = {}
 
     def handle_getch(self, ch):
-        return True
+        pass
 
     def refresh_display(self):
         scr.erase()
@@ -369,7 +378,7 @@ class BrowseMapMode(Mode):
 
     def handle_getch(self, ch):
         if ch in self.disabled_keys:
-            return True
+            return
         if ch == 'q':
             return False
         if ch == 'i':
@@ -394,7 +403,17 @@ class BrowseMapMode(Mode):
             self.select_unit_at_cursor()
         if ch == 'b':
             self.switch_to_SpecifyCityBuildTypeMode()
-        return True
+        if ch == 'e':
+            self.modify_terrain_at_cursor()
+        if ch == 'p':
+            self.switch_to_SpecifyTerrainPaintbrushMode()
+
+    def modify_terrain_at_cursor(self):
+        map[px][py].terr = terrain_paintbrush
+
+    def switch_to_SpecifyTerrainPaintbrushMode(self):
+        global mode
+        mode = SpecifyTerrainPaintbrushMode()
 
     def switch_to_SpecifyCityBuildTypeMode(self):
         global mode
@@ -445,7 +464,21 @@ class SpecifyCityBuildTypeMode(Mode):
         else:
             msg('no unit type associated with that char')
         mode = BrowseMapMode()
-        return True
+
+class SpecifyTerrainPaintbrushMode(Mode):
+    name = 'Specify Terrain Paintbrush'
+
+    def handle_getch(self, ch):
+        global mode, terrain_paintbrush
+        for terrid in type2terr:
+            terr = type2terr[terrid]
+            if terr.char == ch:
+                terrain_paintbrush = terrid
+                msg('changed terrain paintbrush to %s (%s)' % (terr.name, terr.char))
+                break
+        else:
+            msg('unrecognized terrain char, no terrain paintbrush change made')
+        mode = BrowseMapMode()
 
 class UnitSelectedMode(Mode):
     name = 'Unit Selected'
@@ -475,7 +508,6 @@ class UnitSelectedMode(Mode):
             self.cycle_sel_unit_in_same_cell()
         if ch == ' ':
             self.unselect_unit()
-        return True
 
     def refresh_display(self):
         scr.erase()
@@ -575,11 +607,11 @@ class GameOverMode(BrowseMapMode):
         self.disabled_keys['t'] = True
 
     def handle_getch(self, ch):
-        if not BrowseMapMode.handle_getch(self, ch):
+        retval = BrowseMapMode.handle_getch(self,ch)
+        if retval is not None and not retval:
             return False
         if ch == 'r':
             restart_game()
-        return True
 
     def post_handle_getch(self):
         pass # so no victory_check() performed
@@ -628,7 +660,7 @@ def place_units_around(owner, type, x, y, dxm, dym, nmin, nmax):
         units.append(u)
 
 def reset_world():
-    global px, py, mapw, maph, map, factions, units, cities, msgs, curfac
+    global px, py, mapw, maph, map, factions, units, cities, msgs, curfac, terrain_paintbrush
 
     px = 10
     py = 10
@@ -696,6 +728,8 @@ def reset_world():
     turn = 1
     curfac = 1
 
+    terrain_paintbrush = terrname2id('mountains')
+
     msg('%s' % gamename)
     msg('by Mike Kramlich for ZodLogic Games')
 
@@ -752,7 +786,8 @@ def init(stdscr, *args):
 
     while True:
         ch = chr(scr.getch())
-        if not mode.handle_getch(ch):
+        retval = mode.handle_getch(ch)
+        if retval is not None and not retval: # is it False but not None?
             break
         mode.post_handle_getch()
         mode.refresh_display()
