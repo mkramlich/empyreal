@@ -13,7 +13,7 @@ px = 0
 mapw = 0
 maph = 0
 
-logf = None
+#logf = None
 msgs = []
 
 mode = None
@@ -108,8 +108,8 @@ def get_city_at(x, y):
 
 curfac = 0
 
-def log(msg):
-    logf.write(msg)
+#def log(msg):
+#    logf.write(msg)
 
 def msg(txt):
     global msgs
@@ -122,7 +122,7 @@ def centerp(row, txt):
     scr.addstr(row,col,txt)
 
 def addstr(row, col, txt, attr=None):
-    log('%s %s %s' % (row, col, txt))
+    #log('%s %s %s' % (row, col, txt))
     if attr is not None:
         scr.addstr(row,col,txt,attr)
     else:
@@ -720,10 +720,10 @@ def victory_check():
         mode = GameOverMode()
 
 def init(stdscr, *args):
-    global scr, logf, mode
+    global scr, mode #,logf
 
     scr = stdscr
-    logf = open('log','w')
+    #logf = open('log','w')
     curses.start_color() 
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
