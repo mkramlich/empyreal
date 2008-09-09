@@ -113,9 +113,12 @@ curfac = 0
 #def log(msg):
 #    logf.write(msg)
 
+def msgs_display_limit():
+    return scr.getmaxyx()[0] - (maph + 1)
+
 def msg(txt):
     global msgs
-    if len(msgs) >= scr.getmaxyx()[0] - (maph + 1):
+    if len(msgs) >= msgs_display_limit():
         msgs = msgs[1:]
     msgs.append(txt)
 
@@ -181,13 +184,14 @@ def draw_map():
 def draw_cursor():
     addstr(py,px,'@')
 
+
 def draw_messages():
-    r = maph+1
+    r = maph + 1
     c = 0
-    for ln in msgs:
+    ms = msgs[:msgs_display_limit()]
+    for ln in ms:
         addstr(r,c,ln)
         r += 1
-
 
 class EconSnapshot:
     def __init__(self, facid):
@@ -629,7 +633,7 @@ def reset_world():
     px = 10
     py = 10
     mapw = 50
-    maph = 40
+    maph = 30
 
     msgs = []
 
@@ -737,12 +741,10 @@ def init(stdscr, *args):
     curses.init_pair(8, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(9, curses.COLOR_BLACK,  curses.COLOR_MAGENTA) # highlight
 
-    min_req_h = maph + 5
-    if scr.getmaxyx()[0] < min_req_h:
-        raise 'terminal window size must be at least %s lines high!' % min_req_h
     min_req_w = mapw + 5
-    if scr.getmaxyx()[1] < min_req_w:
-        raise 'terminal window size must be at least %s cols wide!' % min_req_w
+    min_req_h = maph + 5
+    if scr.getmaxyx()[1] < min_req_w or scr.getmaxyx()[0] < min_req_h:
+        raise 'terminal window size must be at least %s cols by %s lines!' % (min_req_w, min_req_h)
 
     restart_game()
 
