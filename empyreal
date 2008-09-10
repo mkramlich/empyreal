@@ -428,6 +428,14 @@ class BrowseMapMode(Mode):
             save()
         if ch == 'l':
             load()
+        if ch == 'D':
+            self.delete_all_at_cursor()
+
+    def delete_all_at_cursor(self):
+        unitshere = [u for u in units if u.x == px and u.y == py]
+        for u in unitshere:
+            msg('deleting unit %s at cursor' % desc_unit(u))
+            destroy_unit(u)
 
     def modify_terrain_at_cursor(self):
         map[px][py].terr = terrain_paintbrush
