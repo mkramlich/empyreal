@@ -3,6 +3,7 @@
 from __future__ import with_statement
 
 import curses
+import curses.textpad
 import curses.wrapper
 import pickle
 import random
@@ -44,7 +45,7 @@ class Terrain:
         self.impassable = impassable
 
 type2terr = {}
-type2terr[0] = Terrain('plain',    '.',6)
+type2terr[0] = Terrain('plains',   '.',6)
 type2terr[1] = Terrain('mountains','^',8,True)
 type2terr[2] = Terrain('water',    '~',7)
 
@@ -267,60 +268,6 @@ class EconSnapshot:
             actual_rate = 1
         return actual_rate
 
-def draw_sidebar(highlighted_units=[]):
-    c = mapw + 2
-    attr = curses.color_pair(factions[curfac].color)
-    addstr(0, c, "%s" % factions[curfac].name, attr)
-    addstr(0, c+10, 'Turn %s' % turn)
-    addstr(2, c, mode.name)
-
-    econ = EconSnapshot(curfac)
-    penalty = ''
-    if econ.penalty_rate < 1.0:
-        penalty = ' at %.5s%%' % (econ.penalty_rate * 100.0)
-    addstr(4, c, 'units: %s (- %s)' % (econ.unit_qty, econ.support_need))
-    addstr(5, c, 'cities: %s (+ %s)%s' % (econ.city_qty, econ.total_buildrate, penalty))
-
-    addstr(7, c, "%s,%s" % (px,py))
-    draw_terrain_at(map[px][py].terr,8,c)
-    addstr(8, c+2, "%s" % type2terr[ map[px][py].terr ].name)
-
-    # show cities at cursor
-    cr = 10
-    for city in cities:
-        if city.x == px and city.y == py:
-            cityecon = EconSnapshot(city.owner)
-            draw_city_at(city, cr, c)
-            buildtxt = ''
-            if city.building:
-                utype = unittypes[city.buildtype]
-                buildtxt = ' [%s %s/%s]' % (utype.char, city.buildprogress, utype.buildcost)
-
-            actualtxt = ''
-            if city.owner == curfac:
-                actual = cityecon.actual_buildrate(city)
-                if actual < city.buildrate:
-                    actualtxt = '; %s' % actual
-            addstr(cr, c+2, "%s (%s%s)%s" % (city.name, city.buildrate, actualtxt, buildtxt))
-            cr += 1
-
-    # list units at cursor
-    ur = cr + 1
-    unitshere = units_at(px,py)
-    if len(unitshere) >= 2:
-        addstr(ur, c, 'total units: %s' % len(unitshere))
-        ur += 2
-    for u in unitshere:
-        draw_unit_at(u, ur, c)
-        attr = None
-        utype = unittypes[u.type]
-        if u in highlighted_units:
-            attr = curses.color_pair(COLOR_HIGHLIGHT)
-        addstr(ur, c+2, "%s (%s/%s) [%s/%s]" % (utype.name, u.moveleft, utype.move, u.hp, utype.hpmax), attr)
-        ur += 1
-        if ur >= scr.getmaxyx()[0]:
-            break
-
 def put_cursor_at_active_unit():
     scr.move(py,px)
 
@@ -406,17 +353,76 @@ class Mode:
         draw_map()
         draw_cursor()
         draw_messages()
-        draw_sidebar()
+        self.draw_sidebar()
         put_cursor_at_active_unit()
         scr.refresh()
 
     def post_handle_getch(self):
         victory_check()
 
+    def draw_sidebar(self, highlighted_units=[]):
+        c = mapw + 2
+        attr = curses.color_pair(factions[curfac].color)
+        addstr(0, c, "%s" % factions[curfac].name, attr)
+        addstr(0, c+10, 'Turn %s' % turn)
+        addstr(2, c, mode.name)
+
+        econ = EconSnapshot(curfac)
+        penalty = ''
+        if econ.penalty_rate < 1.0:
+            penalty = ' at %.5s%%' % (econ.penalty_rate * 100.0)
+        addstr(4, c, 'units: %s (- %s)' % (econ.unit_qty, econ.support_need))
+        addstr(5, c, 'cities: %s (+ %s)%s' % (econ.city_qty, econ.total_buildrate, penalty))
+
+        addstr(7, c, "%s,%s" % (px,py))
+        draw_terrain_at(map[px][py].terr,8,c)
+        addstr(8, c+2, "%s" % type2terr[ map[px][py].terr ].name)
+
+        # show cities at cursor
+        cr = 10
+        for city in cities:
+            if city.x == px and city.y == py:
+                cityecon = EconSnapshot(city.owner)
+                draw_city_at(city, cr, c)
+                buildtxt = ''
+                if city.building:
+                    utype = unittypes[city.buildtype]
+                    buildtxt = ' [%s %s/%s]' % (utype.char, city.buildprogress, utype.buildcost)
+
+                actualtxt = ''
+                if city.owner == curfac:
+                    actual = cityecon.actual_buildrate(city)
+                    if actual < city.buildrate:
+                        actualtxt = '; %s' % actual
+                addstr(cr, c+2, "%s (%s%s)%s" % (city.name, city.buildrate, actualtxt, buildtxt))
+                cr += 1
+
+        # list units at cursor
+        ur = cr + 1
+        unitshere = units_at(px,py)
+        if len(unitshere) >= 2:
+            addstr(ur, c, 'total units: %s' % len(unitshere))
+            ur += 2
+        for u in unitshere:
+            draw_unit_at(u, ur, c)
+            attr = None
+            utype = unittypes[u.type]
+            if u in highlighted_units:
+                attr = curses.color_pair(COLOR_HIGHLIGHT)
+            addstr(ur, c+2, "%s (%s/%s) [%s/%s]" % (utype.name, u.moveleft, utype.move, u.hp, utype.hpmax), attr)
+            ur += 1
+            if ur >= scr.getmaxyx()[0]:
+                break
+
 class BrowseMapMode(Mode):
     name = 'Browse Map'
+    unit_selected_mode = None#UnitSelectedMode #TODO hack, see end of U.S.M.
+
+    def get_selectable_factions(self):
+        return [curfac,]
 
     def handle_getch(self, ch):
+        global mode
         if ch in self.disabled_keys:
             return
         if ch == 'q':
@@ -443,33 +449,12 @@ class BrowseMapMode(Mode):
             self.select_unit_at_cursor()
         if ch == 'b':
             self.switch_to_SpecifyCityBuildTypeMode()
-        if ch == 'e':
-            self.modify_terrain_at_cursor()
-        if ch == 'p':
-            self.switch_to_SpecifyTerrainPaintbrushMode()
         if ch == 's':
             save()
         if ch == 'l':
             load()
-        if ch == 'D':
-            self.delete_all_at_cursor()
-
-    def delete_all_at_cursor(self):
-        unitshere = units_at(px,py)
-        for u in unitshere:
-            msg('deleting unit %s at cursor' % desc_unit(u))
-            destroy_unit(u)
-        city = get_city_at(px,py)
-        if city:
-            msg('deleted city %s at cursor' % city.name)
-            cities.remove(city)
-
-    def modify_terrain_at_cursor(self):
-        map[px][py].terr = terrain_paintbrush
-
-    def switch_to_SpecifyTerrainPaintbrushMode(self):
-        global mode
-        mode = SpecifyTerrainPaintbrushMode()
+        if ch == 'd':
+            mode = EditorMode()
 
     def switch_to_SpecifyCityBuildTypeMode(self):
         global mode
@@ -493,15 +478,73 @@ class BrowseMapMode(Mode):
         global mode
         selected = False
         for u in units:
-            if u.owner != curfac:
+            if u.owner not in self.get_selectable_factions():
                 continue
             if u.x == px and u.y == py:
                 selected = True
-                mode = UnitSelectedMode(u)
+                #mode = UnitSelectedMode(u)
+                mode = self.unit_selected_mode(u,self.get_selectable_factions())
                 #mode.refresh_display()
                 break
         if not selected:
             msg('no unit of yours there to select')
+
+class EditorMode(BrowseMapMode):
+    name = 'Editor Mode'
+    unit_selected_mode = None#EditorUnitSelectedMode #TODO hack
+
+    def handle_getch(self, ch):
+        global mode
+        retval = BrowseMapMode.handle_getch(self,ch)
+        if retval is not None and not retval:
+            return False
+        if ch == 'D':
+            self.delete_all_at_cursor()
+        if ch == 'r':
+            self.prompt_for_new_name_for_city_at_cursor()
+        if ch == 'e':
+            self.modify_terrain_at_cursor()
+        if ch == 'p':
+            self.switch_to_SpecifyTerrainPaintbrushMode()
+        if ch == 'd':
+            mode = BrowseMapMode()
+
+    def get_selectable_factions(self):
+        return factions.keys()
+
+    def delete_all_at_cursor(self):
+        unitshere = units_at(px,py)
+        for u in unitshere:
+            msg('deleting unit %s at cursor' % desc_unit(u))
+            destroy_unit(u)
+        city = get_city_at(px,py)
+        if city:
+            msg('deleted city %s at cursor' % city.name)
+            cities.remove(city)
+
+    def prompt_for_new_name_for_city_at_cursor(self):
+        global mode
+        city = get_city_at(px,py)
+        if city:
+            subscr = curses.newwin(1,20,0,0)
+            subscr.addstr(0,0,city.name)
+            subscr.refresh()
+            tp = curses.textpad.Textbox(subscr)
+            newname = tp.edit().strip()
+            msg('renamed city to %s' % newname)
+            city.name = newname
+
+    def modify_terrain_at_cursor(self):
+        map[px][py].terr = terrain_paintbrush
+
+    def switch_to_SpecifyTerrainPaintbrushMode(self):
+        global mode
+        mode = SpecifyTerrainPaintbrushMode(mode)
+
+    def draw_sidebar(self, *args, **kwargs):
+        BrowseMapMode.draw_sidebar(self,*args,**kwargs)
+        attr = curses.color_pair(type2terr[terrain_paintbrush].color)
+        addstr(2,mapw+15,'brush: %s' % type2terr[terrain_paintbrush].char,attr)
 
 class SpecifyCityBuildTypeMode(Mode):
     name = 'Specify Build Type'
@@ -524,6 +567,10 @@ class SpecifyCityBuildTypeMode(Mode):
 class SpecifyTerrainPaintbrushMode(Mode):
     name = 'Specify Terrain Paintbrush'
 
+    def __init__(self, prevmode):
+        Mode.__init__(self)
+        self.prevmode = prevmode
+
     def handle_getch(self, ch):
         global mode, terrain_paintbrush
         for terrid in type2terr:
@@ -534,13 +581,15 @@ class SpecifyTerrainPaintbrushMode(Mode):
                 break
         else:
             msg('unrecognized terrain char, no terrain paintbrush change made')
-        mode = BrowseMapMode()
+        mode = self.prevmode
 
 class UnitSelectedMode(Mode):
     name = 'Unit Selected'
+    return_mode_class = BrowseMapMode
 
-    def __init__(self, unit):
+    def __init__(self, unit, selectable_factions):
         self.unit = unit
+        self.selectable_factions = selectable_factions
 
     def handle_getch(self, ch):
         if ch == 'i':
@@ -572,7 +621,7 @@ class UnitSelectedMode(Mode):
         draw_map()
         draw_unit_at(self.unit, self.unit.y, self.unit.x)
         draw_messages()
-        draw_sidebar([self.unit,])
+        self.draw_sidebar([self.unit,])
         put_cursor_at_active_unit()
         scr.refresh()
 
@@ -583,7 +632,8 @@ class UnitSelectedMode(Mode):
 
     def unselect_unit(self):
         global mode
-        mode = BrowseMapMode()
+        #mode = BrowseMapMode()
+        mode = self.return_mode_class()
         #mode.refresh_display()
 
     def cycle_sel_unit_in_same_cell(self):
@@ -592,7 +642,7 @@ class UnitSelectedMode(Mode):
             i = 0
             while True:
                 u = units[i]
-                if u.x == self.unit.x and u.y == self.unit.y and u.owner == curfac:
+                if u.x == self.unit.x and u.y == self.unit.y and u.owner in self.selectable_factions:
                     if foundPrev:
                         self.unit = u
                         return
@@ -652,8 +702,31 @@ class UnitSelectedMode(Mode):
                 c.owner = self.unit.owner
                 c.building = True
                 msg('city %s captured by %s' % (c.name, desc_unit(self.unit)))
-            
-        #self.refresh_display()
+
+#TODO: fast workaround of issue caused by UnitSelectedMode not being defined at time I'm defining BrowseMapMode
+BrowseMapMode.unit_selected_mode = UnitSelectedMode
+
+class EditorUnitSelectedMode(UnitSelectedMode):
+    name = 'Unit Selected in Editor'
+    return_mode_class = EditorMode
+
+    def handle_getch(self, ch):
+        UnitSelectedMode.handle_getch(self,ch)
+
+    def move_sel_unit(self, xrel, yrel):
+        global px, py
+        nx = self.unit.x + xrel
+        ny = self.unit.y + yrel
+        nx,ny = force_valid_coords(nx,ny)
+        if nx == self.unit.x and ny == self.unit.y:
+            return
+        self.unit.x = nx
+        self.unit.y = ny
+        px = nx
+        py = ny
+
+#TODO quick workaround to class definition order issue
+EditorMode.unit_selected_mode = EditorUnitSelectedMode
 
 class GameOverMode(BrowseMapMode):
     name = 'Game Over'
@@ -740,10 +813,10 @@ def reset_world():
     splash_terrain(1,15,18,1,0,8,20)
 
     factions = {
-        0:Faction('Neutral',1),
-        1:Faction('Blue',2),
-        2:Faction('Red',3),
-        3:Faction('Green',4)}
+        0 : Faction('Neutral',1),
+        1 : Faction('Blue',2),
+        2 : Faction('Red',3),
+        3 : Faction('Green',4)}
 
     bluecap  = City('BlueCap',   1, 10,  5,  5)
     redcap   = City('RedCap',    2, 10, 15, 10)
@@ -838,8 +911,13 @@ def init(stdscr, *args):
 
     sys_argv = args[0]
     if len(sys_argv) >= 2:
-        save_fname = sys_argv[1]
-        load(save_fname)
+        if sys_argv[1] == 'new':
+            pass
+        else:
+            save_fname = sys_argv[1]
+            load(save_fname)
+    else:
+        load('save')
 
     mode.refresh_display()
 

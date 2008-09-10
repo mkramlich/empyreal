@@ -1,14 +1,17 @@
 TODO
 
+command to add unit at cursor (paintbrush faction and unittype)
+command to add city at cursor (paintbrush faction)
+command to change city name at cursor
+command to change paintbrush faction
+command to change owner of city at cursor
+command to change owner of selected unit
+
 key to display help info on current mode, including list of supported commands; the 'help' txt for a command should be attached to the command's function/method, as an attribute
 
 mode to see list of available scenarios, and pick one to play
 
-user can save game
-    for initial save file format use pickle on the root of an object graph, since it's easy and compact
-    later prob revise to instead use a texty format like serialized Python src, so users can manually modify a save file's state in a text editor
-
-user can load game
+when starting a new game, user can specify # of factions to play with
 
 game supports 2-N factions
     each faction can be controlled by either:
@@ -59,3 +62,6 @@ when city captured, partisans may be created nearby right then, and/or in subseq
 alt names:
 War, Strategy, Logic
 Empyreal
+TactiPy
+
+revise save/load code to not use pickle but instead some texty format like serialized Python src, so users can manually modify a save file's state in a text editor
