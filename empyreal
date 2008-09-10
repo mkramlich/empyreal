@@ -96,6 +96,9 @@ class Unit:
 
 units = []
 
+def units_at(x, y):
+    return [u for u in units if u.x == x and u.y == y]
+
 class City:
     def __init__(self, name, owner, buildrate, x, y):
         self.name = name
@@ -283,7 +286,7 @@ def draw_sidebar(highlighted_units=[]):
 
     # list units at cursor
     ur = cr + 1
-    unitshere = [u for u in units if u.x == px and u.y == py]
+    unitshere = units_at(px,py)
     if len(unitshere) >= 2:
         addstr(ur, c, 'total units: %s' % len(unitshere))
         ur += 2
@@ -432,7 +435,7 @@ class BrowseMapMode(Mode):
             self.delete_all_at_cursor()
 
     def delete_all_at_cursor(self):
-        unitshere = [u for u in units if u.x == px and u.y == py]
+        unitshere = units_at(px,py)
         for u in unitshere:
             msg('deleting unit %s at cursor' % desc_unit(u))
             destroy_unit(u)
