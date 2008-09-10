@@ -439,6 +439,10 @@ class BrowseMapMode(Mode):
         for u in unitshere:
             msg('deleting unit %s at cursor' % desc_unit(u))
             destroy_unit(u)
+        city = get_city_at(px,py)
+        if city:
+            msg('deleted city %s at cursor' % city.name)
+            cities.remove(city)
 
     def modify_terrain_at_cursor(self):
         map[px][py].terr = terrain_paintbrush
