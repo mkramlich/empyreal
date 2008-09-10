@@ -13,20 +13,28 @@ gamename = 'Empyreal'
 
 COLOR_HIGHLIGHT = 9
 
-terrain_paintbrush = 0
+class State:
+    pass
 
-scr = None
-py = 0
-px = 0
+# Saved Game State
 mapw = 0
 maph = 0
-
-#logf = None
+py = 0
+px = 0
+map = []
+factions = {}
+cities = []
+units = []
+turn = 0
+curfac = 0
 msgs = []
 
+# Non-Saved State
+type2terr = {}
+unittypes = {}
 mode = None
-
-turn = 0
+scr = None
+terrain_paintbrush = 0
 
 class Terrain:
     def __init__(self, name, char, color,impassable=False):
@@ -51,14 +59,10 @@ class Cell:
     def __init__(self, terr=0):
         self.terr = terr
 
-map = []
-
 class Faction:
     def __init__(self, name, color):
         self.name = name
         self.color = color
-
-factions = {}
 
 class UnitType:
     def __init__(self, name, char, buildcost, softatk, softdef, hardatk, harddef, hpmax, move):
@@ -94,8 +98,6 @@ class Unit:
         self.moveleft = unittypes[type].move
         self.hp = unittypes[type].hpmax
 
-units = []
-
 def units_at(x, y):
     return [u for u in units if u.x == x and u.y == y]
 
@@ -110,8 +112,6 @@ class City:
         self.buildprogress = 0
         self.buildrate = buildrate
 
-cities = []
-
 def city_with_name(name):
     for c in cities:
         if c.name == name:
@@ -123,11 +123,6 @@ def get_city_at(x, y):
         if c.x == x and c.y == y:
             return c
     return None
-
-curfac = 0
-
-#def log(msg):
-#    logf.write(msg)
 
 def msgs_display_limit():
     return scr.getmaxyx()[0] - (maph + 1)
@@ -143,7 +138,6 @@ def centerp(row, txt):
     scr.addstr(row,col,txt)
 
 def addstr(row, col, txt, attr=None):
-    #log('%s %s %s' % (row, col, txt))
     if attr is not None:
         scr.addstr(row,col,txt,attr)
     else:
@@ -152,17 +146,43 @@ def addstr(row, col, txt, attr=None):
 def hitanykey():
     scr.getch()
 
+def is_valid_xy(x, y):
+    return x >= 0 and y >= 0 and x < mapw and y < maph
+
 def save():
-    state = map
     fname = 'save'
+    msg('saving game to file %s' % fname)
+    state = State()
+    state.map = map
+    state.factions = factions
+    state.cities = cities
+    state.units = units
+    state.px = px
+    state.py = py
+    state.turn = turn
+    state.curfac = curfac
+    state.msgs = msgs
+    state.mapw = mapw
+    state.maph = maph
     with file(fname,'w') as f:
         pickle.dump(state,f)
-        msg('game saved to file %s' % fname)
 
 def load(fname = 'save'):
-    global map
+    global map, cities, units, factions, px, py, turn, curfac, msgs, mapw, maph
+
     with file(fname,'r') as f:
-        map = pickle.load(f)
+        state = pickle.load(f)
+        map = state.map
+        factions = state.factions
+        cities = state.cities
+        units = state.units
+        px = state.px
+        py = state.py
+        turn = state.turn
+        curfac = state.curfac
+        msgs = state.msgs
+        mapw = state.mapw
+        maph = state.maph
         msg('game loaded from file %s' % fname)
 
 def draw_panel_borders():
@@ -518,6 +538,7 @@ class SpecifyTerrainPaintbrushMode(Mode):
 
 class UnitSelectedMode(Mode):
     name = 'Unit Selected'
+
     def __init__(self, unit):
         self.unit = unit
 
@@ -652,8 +673,6 @@ class GameOverMode(BrowseMapMode):
     def post_handle_getch(self):
         pass # so no victory_check() performed
 
-def is_valid_xy(x, y):
-    return x >= 0 and y >= 0 and x < mapw and y < maph
 
 def fill_terrain(terr, x, y, w, h):
     for xx in range(x,x+w):
@@ -796,10 +815,9 @@ def victory_check():
         mode = GameOverMode()
 
 def init(stdscr, *args):
-    global scr, mode #,logf
+    global scr, mode
 
     scr = stdscr
-    #logf = open('log','w')
     curses.start_color() 
     curses.init_pair(1, curses.COLOR_WHITE,  curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_WHITE,  curses.COLOR_BLUE)
