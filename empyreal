@@ -1,8 +1,12 @@
 #!/usr/bin/env python2.5
 
+from __future__ import with_statement
+
 import curses
 import curses.wrapper
+import pickle
 import random
+import sys
 from groglib import chance, rand_diff, rand_range, rand_success
 
 gamename = 'Empyreal'
@@ -144,6 +148,19 @@ def addstr(row, col, txt, attr=None):
 
 def hitanykey():
     scr.getch()
+
+def save():
+    state = map
+    fname = 'save'
+    with file(fname,'w') as f:
+        pickle.dump(state,f)
+        msg('game saved to file %s' % fname)
+
+def load(fname = 'save'):
+    global map
+    with file(fname,'r') as f:
+        map = pickle.load(f)
+        msg('game loaded from file %s' % fname)
 
 def draw_panel_borders():
     # border between map and messages
@@ -407,6 +424,10 @@ class BrowseMapMode(Mode):
             self.modify_terrain_at_cursor()
         if ch == 'p':
             self.switch_to_SpecifyTerrainPaintbrushMode()
+        if ch == 's':
+            save()
+        if ch == 'l':
+            load()
 
     def modify_terrain_at_cursor(self):
         map[px][py].terr = terrain_paintbrush
@@ -782,6 +803,11 @@ def init(stdscr, *args):
 
     restart_game()
 
+    sys_argv = args[0]
+    if len(sys_argv) >= 2:
+        save_fname = sys_argv[1]
+        load(save_fname)
+
     mode.refresh_display()
 
     while True:
@@ -792,4 +818,5 @@ def init(stdscr, *args):
         mode.post_handle_getch()
         mode.refresh_display()
 
-curses.wrapper(init)
+if __name__ == '__main__':
+    curses.wrapper(init, sys.argv)
