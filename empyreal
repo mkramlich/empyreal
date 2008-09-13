@@ -82,8 +82,8 @@ class UnitType:
         self.buildchar = self.char.lower()
 
 unittypes = {
-    0 : UnitType('infantry',  'I',10, 3, 2, 1, 1, 2, 1),
-    1 : UnitType('armor',     'A',30, 3, 9, 6, 6, 3, 2),
+    0 : UnitType('infantry',  'I',10, 3, 2, 2, 3, 2, 1),
+    1 : UnitType('armor',     'A',30, 5, 9, 6, 6, 3, 2),
     2 : UnitType('partisans', 'P', 2, 1, 1, 1, 1, 1, 1)}
 
 def type_for_name(name):
@@ -397,8 +397,11 @@ class Mode:
                     actual = cityecon.actual_buildrate(city)
                     if actual < city.buildrate:
                         actualtxt = '; %s' % actual
-                addstr(cr, c+2, "%s (%s%s)%s" % (city.name, city.buildrate, actualtxt, buildtxt))
-                cr += 1
+                lns = ['%s' % city.name,
+                       '(%s%s)%s' % (city.buildrate, actualtxt, buildtxt)]
+                for ln in lns:
+                    addstr(cr,c+2,ln)
+                    cr += 1
 
         # list units at cursor
         ur = cr + 1
