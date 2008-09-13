@@ -5,10 +5,11 @@ from __future__ import with_statement
 import curses
 import curses.textpad
 import curses.wrapper
+import linecache
 import pickle
 import random
 import sys
-from groglib import chance, rand_diff, rand_range, rand_success
+from groglib import chance, rand_diff, rand_range, rand_success, read_file_lines
 
 gamename = 'Empyreal'
 
@@ -35,7 +36,9 @@ type2terr = {}
 unittypes = {}
 mode = None
 scr = None
-terrain_paintbrush = 0
+paintbrush_terrain = 0
+paintbrush_faction = 0
+paintbrush_unittype = 0
 
 class Terrain:
     def __init__(self, name, char, color,impassable=False):
@@ -505,9 +508,63 @@ class EditorMode(BrowseMapMode):
         if ch == 'e':
             self.modify_terrain_at_cursor()
         if ch == 'p':
-            self.switch_to_SpecifyTerrainPaintbrushMode()
+            self.switch_to_SpecifyPaintbrushTerrainMode()
+        if ch == 'f':
+            self.cycle_paintbrush_faction()
+        if ch == 'w':
+            self.switch_to_SpecifyPaintbrushUnitTypeMode()
         if ch == 'd':
             mode = BrowseMapMode()
+        if ch == 'c':
+            self.add_city_at_cursor()
+        if ch == 'a':
+            self.add_unit_at_cursor()
+
+    def add_unit_at_cursor(self):
+        unit = Unit(paintbrush_faction,paintbrush_unittype,px,py)
+        units.append(unit)
+        msg('new %s added at %s,%s' % (desc_unit(unit), px, py))
+
+    def is_city_name_used(self, name):
+        for c in cities:
+            if c.name == name:
+                return True
+        return False
+
+    def get_name_for_new_city(self):
+        linecache.checkcache()
+        names = linecache.getlines('city_names')
+        names = __builtins__.map(lambda ln: ln.strip(), names) #TODO should only do once per app run, not each call to the enclosing function
+        attempts = 0
+        unique_ord = 2
+        was_unique = True
+        while attempts < 200:
+            name = random.choice(names)
+            if attempts > 100:
+                name = '%s %s' % (name, unique_ord)
+                unique_ord += 1
+            if not self.is_city_name_used(name):
+                break
+            attempts += 1
+        else:
+            msg('else reached')
+            was_unique = False
+        return name, was_unique
+
+    def add_city_at_cursor(self):
+        if not get_city_at(px,py):
+            name, was_unique = self.get_name_for_new_city()
+            city  = City(name,paintbrush_faction,10,px,py)
+            cities.append(city)
+            msg('city %s added at %s,%s' % (city.name, city.x, city.y))
+        else:
+            msg('city already there, no more than one allowed')
+
+    def cycle_paintbrush_faction(self):
+        global paintbrush_faction
+        paintbrush_faction += 1
+        if paintbrush_faction >= len(factions.keys()):
+            paintbrush_faction = 0
 
     def get_selectable_factions(self):
         return factions.keys()
@@ -535,16 +592,24 @@ class EditorMode(BrowseMapMode):
             city.name = newname
 
     def modify_terrain_at_cursor(self):
-        map[px][py].terr = terrain_paintbrush
+        map[px][py].terr = paintbrush_terrain
 
-    def switch_to_SpecifyTerrainPaintbrushMode(self):
+    def switch_to_SpecifyPaintbrushTerrainMode(self):
         global mode
-        mode = SpecifyTerrainPaintbrushMode(mode)
+        mode = SpecifyPaintbrushTerrainMode(mode)
+
+    def switch_to_SpecifyPaintbrushUnitTypeMode(self):
+        global mode
+        mode = SpecifyPaintbrushUnitTypeMode(mode)
 
     def draw_sidebar(self, *args, **kwargs):
         BrowseMapMode.draw_sidebar(self,*args,**kwargs)
-        attr = curses.color_pair(type2terr[terrain_paintbrush].color)
-        addstr(2,mapw+15,'brush: %s' % type2terr[terrain_paintbrush].char,attr)
+        addstr(2,mapw+15,'brush:')
+        attr = curses.color_pair(type2terr[paintbrush_terrain].color)
+        addstr(2,mapw+15+7,'%s' % type2terr[paintbrush_terrain].char,attr)
+        attr = curses.color_pair(factions[paintbrush_faction].color)
+        addstr(2,mapw+15+7+2,'%s' % factions[paintbrush_faction].name[0],attr)
+        addstr(2,mapw+15+7+2+2,'%s' % unittypes[paintbrush_unittype].char)
 
 class SpecifyCityBuildTypeMode(Mode):
     name = 'Specify Build Type'
@@ -564,23 +629,42 @@ class SpecifyCityBuildTypeMode(Mode):
             msg('no unit type associated with that char')
         mode = BrowseMapMode()
 
-class SpecifyTerrainPaintbrushMode(Mode):
-    name = 'Specify Terrain Paintbrush'
+class SpecifyPaintbrushTerrainMode(Mode):
+    name = 'Specify Brush Terrain'
 
     def __init__(self, prevmode):
         Mode.__init__(self)
         self.prevmode = prevmode
 
     def handle_getch(self, ch):
-        global mode, terrain_paintbrush
+        global mode, paintbrush_terrain
         for terrid in type2terr:
             terr = type2terr[terrid]
             if terr.char == ch:
-                terrain_paintbrush = terrid
+                paintbrush_terrain = terrid
                 msg('changed terrain paintbrush to %s (%s)' % (terr.name, terr.char))
                 break
         else:
             msg('unrecognized terrain char, no terrain paintbrush change made')
+        mode = self.prevmode
+
+class SpecifyPaintbrushUnitTypeMode(Mode):
+    name = 'Specify Brush Unit Type'
+
+    def __init__(self, prevmode):
+        Mode.__init__(self)
+        self.prevmode = prevmode
+
+    def handle_getch(self, ch):
+        global mode, paintbrush_unittype
+        for utid in unittypes:
+            type = unittypes[utid]
+            if type.buildchar == ch:
+                paintbrush_unittype = utid
+                msg('brush unit type now %s' % unittypes[utid].name)
+                break
+        else:
+            msg('no unit type associated with that char')
         mode = self.prevmode
 
 class UnitSelectedMode(Mode):
@@ -608,7 +692,7 @@ class UnitSelectedMode(Mode):
             self.move_sel_unit(-1,0)
         if ch == 'k':
             self.move_sel_unit(1,0)
-        if ch == 'd':
+        if ch == 'D':
             self.disband_selected_unit()
         if ch == '.':
             self.cycle_sel_unit_in_same_cell()
@@ -788,7 +872,7 @@ def place_units_around(owner, type, x, y, dxm, dym, nmin, nmax):
         units.append(u)
 
 def reset_world():
-    global px, py, mapw, maph, map, factions, units, cities, msgs, curfac, terrain_paintbrush
+    global px, py, mapw, maph, map, factions, units, cities, msgs, curfac, paintbrush_terrain
 
     px = 10
     py = 10
@@ -856,7 +940,7 @@ def reset_world():
     turn = 1
     curfac = 1
 
-    terrain_paintbrush = terrname2id('mountains')
+    paintbrush_terrain = terrname2id('mountains')
 
     msg('%s' % gamename)
     msg('by Mike Kramlich for ZodLogic Games')

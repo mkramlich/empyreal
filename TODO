@@ -1,9 +1,10 @@
 TODO
 
-command to add unit at cursor (paintbrush faction and unittype)
-command to add city at cursor (paintbrush faction)
-command to change city name at cursor
-command to change paintbrush faction
+command to change buildrate of city at cursor
+commands to separately change these traits of selected unit when in Editor mode:
+    cur HP
+    cur move or move left
+
 command to change owner of city at cursor
 command to change owner of selected unit
 
@@ -21,13 +22,19 @@ game supports 2-N factions
 
 command to show a table of statistics about all factions, one line/chunk per faction
 
+refactor new city naming code to use a Word Pool, so that a Word Pool instance keeps track of whether any particular name is already in use or not; impl details of the Word Pool are not important, start with TSTTCPW (The Simplest Thing That Could Possibly Work), then revise later
+
 built-in editor mode
     lets user modify the map (terrain, cities, etc.)
     lets user add/delete/modify units in any cell
     can save to a scenario file
     can load from a scenario file
 
-game has a client-server arrchitecture: one server process running on host machine, plus one client process per human player (there may be muultiple hotseat humans sitting at same computer sharing the same client process, taking turns; plus, zero or more remote human players or player groups, each with a single client process per computer, etc.) Start with simple text-over-a-socket. Consider using Twisted to provide more free abstractions.
+in Editor mode, commands to:
+    move terrain at cursor one cell in a particular direction
+    specify a rectangular region, then move contents of that region one cell in a particular direction (individually toggleable options whether to move units, cities and/or terrain)
+
+game has a client-server architecture: one server process running on host machine, plus one client process per human player (there may be muultiple hotseat humans sitting at same computer sharing the same client process, taking turns; plus, zero or more remote human players or player groups, each with a single client process per computer, etc.) Start with simple text-over-a-socket. Consider using Twisted to provide more free abstractions.
 
 minefield - when units move into the cell, they may suffer HP damage
 
@@ -41,6 +48,8 @@ if support need vs. city support provide shortfall is too severe, it should star
 
 neutral units should move randomly during the neutral faction's turn
     the neutral faction's turn should be executed programmatically, first switch into a Mode that doesn't allow user input handling, then execute shit (move his units, attack with his units, etc.), then exit that mode goign back into a normal Mode
+
+if multiple unit types present in same cell, of same owner, then the biggest or most significant type should be rendered on the map; example: A beats I, I beats P
 
 multiple different unit types
     a water-travelling type (ship)
