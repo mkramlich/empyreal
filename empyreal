@@ -452,9 +452,9 @@ class BrowseMapMode(Mode):
             self.select_unit_at_cursor()
         if ch == 'b':
             self.switch_to_SpecifyCityBuildTypeMode()
-        if ch == 's':
+        if ch == 'S':
             save()
-        if ch == 'l':
+        if ch == 'L':
             load()
         if ch == 'd':
             mode = EditorMode()
