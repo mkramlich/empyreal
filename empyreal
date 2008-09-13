@@ -50,7 +50,7 @@ class Terrain:
 type2terr = {}
 type2terr[0] = Terrain('plains',   '.',6)
 type2terr[1] = Terrain('mountains','^',8,True)
-type2terr[2] = Terrain('water',    '~',7)
+type2terr[2] = Terrain('water',    '~',7,True)
 
 def terrname2id(name):
     for terrid in type2terr:
@@ -623,6 +623,7 @@ class SpecifyCityBuildTypeMode(Mode):
             type = unittypes[utid]
             if type.buildchar == ch:
                 self.city.buildtype = utid
+                self.city.building = True
                 msg('city %s now building %s' % (self.city.name, type.name))
                 break
         else:
