@@ -154,7 +154,7 @@ def is_valid_xy(x, y):
     return x >= 0 and y >= 0 and x < mapw and y < maph
 
 def save():
-    fname = 'save'
+    fname = 'saves/last'
     msg('saving game to file %s' % fname)
     state = State()
     state.map = map
@@ -171,7 +171,7 @@ def save():
     with file(fname,'w') as f:
         pickle.dump(state,f)
 
-def load(fname = 'save'):
+def load(fname = 'saves/last'):
     global map, cities, units, factions, px, py, turn, curfac, msgs, mapw, maph
 
     with file(fname,'r') as f:
@@ -1002,7 +1002,7 @@ def init(stdscr, *args):
             save_fname = sys_argv[1]
             load(save_fname)
     else:
-        load('save')
+        load()
 
     mode.refresh_display()
 
