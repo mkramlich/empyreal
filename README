@@ -1,6 +1,6 @@
 README
 
-Empyreal is an Empire-like game written in Python uses curses for the UI.
+Empyreal is an Empire-like game written in Python using curses for the UI.
 
 It is under construction. Much work remains to be done, features to add, optimizations to perform, user conveniences and options to add, etc.
 
