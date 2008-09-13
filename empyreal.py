@@ -238,7 +238,6 @@ def draw_map():
 def draw_cursor():
     addstr(py,px,'@')
 
-
 def draw_messages():
     r = maph + 1
     c = 0
