@@ -1,3 +1,9 @@
 README
 
-Designed to work best at terminal sizes of at least 80 cols by 42 lines.
+Empyreal is an Empire-like game written in Python uses curses for the UI.
+
+It is under construction. Much work remains to be done, features to add, optimizations to perform, user conveniences and options to add, etc.
+
+It is mostly an excuse to familiarize myself with Python's curses module, and to refamiliarize with curses in general.
+
+The UI is currently designed with some assumptions that make it work best in a terminal whose minimum dimensions are 80 cols by 42 lines.
