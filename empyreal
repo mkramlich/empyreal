@@ -9,7 +9,8 @@ import linecache
 import pickle
 import random
 import sys
-from groglib import chance, rand_diff, rand_range, rand_success, read_file_lines
+
+from lib import chance, rand_diff, rand_range, rand_success, read_file_lines
 
 gamename = 'Empyreal'
 

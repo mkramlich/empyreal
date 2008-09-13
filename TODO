@@ -67,7 +67,6 @@ some unit types can move across water, some can't
 mountains may not be moved into by most land units (but some can)
     almost all air units can move into mountains
 
-
 when city captured, partisans may be created nearby right then, and/or in subsequent turns, so long as the city remains foreign occupied/consquered (ie. owned by a faction which did not own it at scenario start)
 
 alt names:
