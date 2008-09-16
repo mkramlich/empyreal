@@ -24,8 +24,6 @@ command to show a table of statistics about all factions, one line/chunk per fac
 
 attacking unit may be damaged/destroyed during the attack
 
-in sidebar, if city name too long then the city line wraps around into the map; instead either abbreviate the city name or put the city's stats on the next line but still within the sidebar
-
 refactor new city naming code to use a Word Pool, so that a Word Pool instance keeps track of whether any particular name is already in use or not; impl details of the Word Pool are not important, start with TSTTCPW (The Simplest Thing That Could Possibly Work), then revise later
 
 built-in editor mode
