@@ -10,6 +10,22 @@ The UI is currently designed with some assumptions that make it work best in a t
 
 If you start the program without arguments, it loads the previous game state found in the file 'saves/last'. If you wish to continue from a different game state, specify an alternate filename as the only argument. Currently both the save and load user commands use the 'saves/last' filename. (In the future we'll add support for more options and detailed control of where and how to save/load.)
 
+The following chart specifies the meaning of the symbols shown on the map, broken down by category or type. As a convenience, the symbol is the same character used when the user is expected to give input specifying what type to use. For example, as in the case when specifying what unit type to build, or what terrain to use in the editor's brush.
+
+Map Key:
+
+type        name        char
+unit types -----------------
+            partisans   P
+            infantry    I
+            armor       A
+terrains -------------------
+            plains      .
+            mountains   ^
+            water       ~
+misc -----------------------
+            city        #
+
 Here are lists of the keyboard commands available in each mode. Note that case is important. Destructive or rarely-used commands tend to use an uppercase letter. Common or harmless commands tend to use lowercase.
 
 Browse Map Mode
