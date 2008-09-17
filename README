@@ -75,7 +75,7 @@ Editor Mode
               NOTE: This enters a special mode where the city's name is shown
               in the top-left corner of the screen, overlaying the map. Use the
               arrow keys to move your cursor around in the text field containing
-              the name, typing new characters at any position, and using Ctrl-H
+              the name, typing new characters at any position, and use Ctrl-H
               to backspace delete characters, as needed. Press enter/return when
               you are done, and this special mode exits back to Browse Map Mode.
            c: add city at cursor
