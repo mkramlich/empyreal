@@ -1,7 +1,5 @@
 TODO
 
-make quit and endturn commands uppercase
-
 command to change buildrate of city at cursor
 commands to separately change these traits of selected unit when in Editor mode:
     cur HP
@@ -29,10 +27,8 @@ attacking unit may be damaged/destroyed during the attack
 refactor new city naming code to use a Word Pool, so that a Word Pool instance keeps track of whether any particular name is already in use or not; impl details of the Word Pool are not important, start with TSTTCPW (The Simplest Thing That Could Possibly Work), then revise later
 
 built-in editor mode
-    lets user modify the map (terrain, cities, etc.)
-    lets user add/delete/modify units in any cell
-    can save to a scenario file
-    can load from a scenario file
+    can save to a user-specified file
+    can load from a user-specified file
 
 in Editor mode, commands to:
     move terrain at cursor one cell in a particular direction
