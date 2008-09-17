@@ -104,7 +104,7 @@ Editor Selected Unit Mode
            j: move unit west       (-1,  0)
            k: move unit east       (+1,  0)
            .: cycle selected unit to the next eligible unit in same location
-    SPACEBAR: unselected unit, switching back to Editor Mode
+    SPACEBAR: unselect unit, switching back to Editor Mode
 
 NOTE ABOUT MOVING COMMANDS:
     Unlike in regular gameplay (in Selected Unit Mode), moving a unit in this special mode does NOT spend movement points, and therefore there is no limit as to how much you can move a unit in this mode.
