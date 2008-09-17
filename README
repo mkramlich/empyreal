@@ -27,8 +27,8 @@ Browse Map Mode
            d: switch to Editor Mode
            S: save
            L: load
-           t: end turn
-           q: quit program
+           T: end turn
+           Q: quit program
 
 Selected Unit Mode
 
@@ -109,5 +109,5 @@ Game Over Mode
 
     This mode is entered whenever victory conditions are achieved. A special message will appear in the scrolling messages area on the screen, indicating you have entered this mode.
 
-    This mode is similar to Browse Map Mode except commands related to game play are disabled. For example, you can move the cursor around and explore the map, but will not be able to make attacks or end the turn. Eventually you'll want to press 'q' to quit.
+    This mode is similar to Browse Map Mode except commands related to game play are disabled. For example, you can move the cursor around and explore the map, but will not be able to make attacks or end the turn. Eventually you'll want to press 'Q' to quit.
 

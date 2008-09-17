@@ -431,7 +431,7 @@ class BrowseMapMode(Mode):
         global mode
         if ch in self.disabled_keys:
             return
-        if ch == 'q':
+        if ch == 'Q':
             return False
         if ch == 'i':
             self.move(0,-1)
@@ -449,7 +449,7 @@ class BrowseMapMode(Mode):
             self.move(-1,0)
         if ch == 'k':
             self.move(1,0)
-        if ch == 't':
+        if ch == 'T':
             endturn()
         if ch == ' ':
             self.select_unit_at_cursor()
