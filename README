@@ -7,3 +7,107 @@ It is under construction. Much work remains to be done, features to add, optimiz
 It is mostly an excuse to familiarize myself with Python's curses module, and to refamiliarize with curses in general.
 
 The UI is currently designed with some assumptions that make it work best in a terminal whose minimum dimensions are 80 cols by 42 lines.
+
+If you start the program without arguments, it loads the previous game state found in the file 'saves/last'. If you wish to continue from a different game state, specify an alternate filename as the only argument. Currently both the save and load user commands use the 'saves/last' filename. (In the future we'll add support for more options and detailed control of where and how to save/load.)
+
+Here are lists of the keyboard commands available in each mode. Note that case is important. Destructive or rarely-used commands tend to use an uppercase letter. Common or harmless commands tend to use lowercase.
+
+Browse Map Mode
+
+           i: move cursor north      ( 0, -1)
+           u: move cursor north-west (-1, -1)
+           o: move cursor north-east (+1, -1)
+           m: move cursor south      ( 0, +1)
+           n: move cursor south-west (-1, +1)
+           ,: move cursor south-east (+1, +1)
+           j: move cursor west       (-1,  0)
+           k: move cursor east       (+1,  0)
+    SPACEBAR: select unit at cursor, and switch to Selected Unit Mode
+           b: switch to Specify City Build Type Mode
+           d: switch to Editor Mode
+           S: save
+           L: load
+           t: end turn
+           q: quit program
+
+Selected Unit Mode
+
+           i: move unit north      ( 0, -1)
+           u: move unit north-west (-1, -1)
+           o: move unit north-east (+1, -1)
+           m: move unit south      ( 0, +1)
+           n: move unit south-west (-1, +1)
+           ,: move unit south-east (+1, +1)
+           j: move unit west       (-1,  0)
+           k: move unit east       (+1,  0)
+           .: cycle selected unit to the next eligible unit in same location
+           D: disband selected unit
+    SPACEBAR: unselect unit, and switch back to Browse Map Mode
+
+NOTE ABOUT MOVEMENT COMMANDS:
+    When you attempt to move a unit into a location containing an enemy unit, your unit will attack an enemy unit there, instead of moving. An attack will either destroy or damage the enemy unit, or, fail to have any effect at all. If the target location instead contains an unoccupied city that you do not own/control, then your unit will conquer the city and take ownership of it.
+
+Specify City Build Type Mode
+    
+    Hit the character for the unit type you wish to build.
+    For example, 'a' for armor. 'i' for infantry. Case not important.
+    Then the mode exits and returns to Browse Map Mode.
+
+Editor Mode
+
+           r: prompt for new name for city at cursor
+              NOTE: This enters a special mode where the city's name is shown
+              in the top-left corner of the screen, overlaying the map. Use the
+              arrow keys to move your cursor around in the text field containing
+              the name, typing new characters at any position, and using Ctrl-H
+              to backspace delete characters, as needed. Press enter/return when
+              you are done, and this special mode exits back to Browse Map Mode.
+           c: add city at cursor
+           a: add unit at cursor
+           e: modify terrain at cursor
+           f: cycle paintbrush faction
+           w: switch to Specify Paintbrush Unit Type Mode
+           p: switch to Specify Paintbrush Terrain Mode
+    SPACEBAR: select unit at cursor, switching to Editor Selected Unit Mode
+           D: delete all at cursor (units, cities, and resets terrain to plains)
+           d: switch back to Browse Map Mode
+
+NOTE ABOUT EDITTING COMMANDS:
+    Adding a unit will use the current brush unit type, and faction as owner.
+    Adding a city will use the current brush faction as owner.
+    Modifying terrain will change the terrain to the current brush terrain.
+
+Editor Selected Unit Mode
+
+           i: move unit north      ( 0, -1)
+           u: move unit north-west (-1, -1)
+           o: move unit north-east (+1, -1)
+           m: move unit south      ( 0, +1)
+           n: move unit south-west (-1, +1)
+           ,: move unit south-east (+1, +1)
+           j: move unit west       (-1,  0)
+           k: move unit east       (+1,  0)
+           .: cycle selected unit to the next eligible unit in same location
+    SPACEBAR: unselected unit, switching back to Editor Mode
+
+NOTE ABOUT MOVING COMMANDS:
+    Unlike in regular gameplay (in Selected Unit Mode), moving a unit in this special mode does NOT spend movement points, and therefore there is no limit as to how much you can move a unit in this mode.
+
+Specify Paintbrush Terrain Mode
+
+    Hit the character for the terrain you wish to use as the brush unit type.
+    For example, '.' for plains. '^' for mountains.
+    Then the mode exits and returns to Editor Mode.
+
+Specify Paintbrush Unit Type Mode
+
+    Hit the character for the unit type you wish to use as the brush unit type.
+    For example, 'a' for armor. 'i' for infantry. Case is not important.
+    Then the mode exits and returns to Editor Mode.
+
+Game Over Mode
+
+    This mode is entered whenever victory conditions are achieved. A special message will appear in the scrolling messages area on the screen, indicating you have entered this mode.
+
+    This mode is similar to Browse Map Mode except commands related to game play are disabled. For example, you can move the cursor around and explore the map, but will not be able to make attacks or end the turn. Eventually you'll want to press 'q' to quit.
+

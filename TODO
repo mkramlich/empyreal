@@ -1,5 +1,7 @@
 TODO
 
+make quit and endturn commands uppercase
+
 command to change buildrate of city at cursor
 commands to separately change these traits of selected unit when in Editor mode:
     cur HP
