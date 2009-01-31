@@ -111,7 +111,7 @@ NOTE ABOUT MOVING COMMANDS:
 
 Specify Paintbrush Terrain Mode
 
-    Hit the character for the terrain you wish to use as the brush unit type.
+    Hit the character for the terrain you wish to use as the brush terrain type.
     For example, '.' for plains. '^' for mountains.
     Then the mode exits and returns to Editor Mode.
 
